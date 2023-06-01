@@ -23,12 +23,14 @@ async function main() {
       price: new BN(estate.order.price),
     };
   });
+
   while (true) {
     const floorPrice = new BN(lands[0].order.price);
     const floorPriceEstate = floorPrice.mul(new BN("11")).div(new BN(10));
 
-    const estate = estatesMap.sort((a, b) => a.pricePerParcel.lt(b.pricePerParcel)).find(estate => estate.pricePerParcel.lte(floorPriceEstate) && estate.price.lt(MAX_SPEND.sub(manaSpent)))
+    const estate = estatesMap.sort((a, b) => a.pricePerParcel.lt(b.pricePerParcel)).find(estate => estate.pricePerParcel.lte(floorPriceEstate) && estate.price.lt(MAX_SPEND.sub(manaSpent))/*  && estate.id */)
     if (estate) {
+      if (manaSpent.add(estate.price).gt(MAX_SPEND)) break;
       var x = estate.parcels.map(function (a) { return a.x });
       var y = estate.parcels.map(function (a) { return a.y });
 
@@ -40,11 +42,10 @@ async function main() {
         x: Math.max(x),
         y: Math.max(y)
       }
-      if (manaSpent.add(estate.price).gt(MAX_SPEND)) break;
 
       manaSpent = manaSpent.add(estate.price)
       toBuy.push(getMarketplaceUrl('estate', estate.id) + ` for ${fromWei(estate.price).toNumber()} MANA`)
-      estatesMap = estatesMap.slice(estatesMap.findIndex(a => a.id == estate.id), 1)
+      estatesMap.splice(estatesMap.findIndex(a => a.id == estate.id), 1)
       continue
     }
     else {
