@@ -9,10 +9,10 @@ let toBuy = [];
 async function main() {
   let manaSpent = toWei(new BN(0))
   let lands = await fetchAndJson(
-    "https://nft-api.decentraland.org/v1/nfts?first=100&skip=0&sortBy=cheapest&category=parcel&isOnSale=true"
+      "https://nft-api.decentraland.org/v1/nfts?first=100&skip=0&sortBy=cheapest&category=parcel&isOnSale=true"
   );
   let estates = await fetchAndJson(
-    "https://nft-api.decentraland.org/v1/nfts?first=1000&skip=0&sortBy=cheapest&category=estate&isOnSale=true"
+      "https://nft-api.decentraland.org/v1/nfts?first=1000&skip=0&sortBy=cheapest&category=estate&isOnSale=true"
   );
   let estatesMap = estates.map((estate) => {
     return {
@@ -31,29 +31,16 @@ async function main() {
     const estate = estatesMap.sort((a, b) => a.pricePerParcel.lt(b.pricePerParcel)).find(estate => estate.pricePerParcel.lte(floorPriceEstate) && estate.price.lt(MAX_SPEND.sub(manaSpent))/*  && estate.id */)
     if (estate) {
       if (manaSpent.add(estate.price).gt(MAX_SPEND)) break;
-      var x = estate.parcels.map(function (a) { return a.x });
-      var y = estate.parcels.map(function (a) { return a.y });
-
-      var min_coords = {
-        x: Math.min(x),
-        y: Math.min(y)
-      }
-      var max_coords = {
-        x: Math.max(x),
-        y: Math.max(y)
-      }
-
       manaSpent = manaSpent.add(estate.price)
       toBuy.push(getMarketplaceUrl('estate', estate.id) + ` for ${fromWei(estate.price).toNumber()} MANA`)
-      estatesMap.splice(estatesMap.findIndex(a => a.id == estate.id), 1)
-      continue
+      estatesMap.splice(estatesMap.findIndex(a => a.id === estate.id), 1)
     }
     else {
       if (manaSpent.add(floorPrice).gt(MAX_SPEND)) break;
 
       manaSpent = manaSpent.add(floorPrice)
       toBuy.push(getMarketplaceUrl('parcel', lands[0].nft.tokenId) + ` for ${fromWei(floorPrice).toNumber()} MANA`)
-      lands.shift()
+      await lands.shift()
     }
   }
   console.log(toBuy.join("\n"));
@@ -76,6 +63,6 @@ function toWei(bn) {
 }
 
 function getMarketplaceUrl(type, tokenId) {
-  const contractAddress = type == "parcel" ? "0xf87e31492faf9a91b02ee0deaad50d51d56d5d4d" : "0x959e104e1a4db6317fa58f8295f586e1a978c297"
+  const contractAddress = type === "parcel" ? "0xf87e31492faf9a91b02ee0deaad50d51d56d5d4d" : "0x959e104e1a4db6317fa58f8295f586e1a978c297"
   return `https://market.decentraland.org/contracts/${contractAddress}/tokens/${tokenId}`
 }
